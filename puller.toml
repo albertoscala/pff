@@ -1,7 +1,4 @@
-[config]
-username = "Emilia-Systems"
-
 [dependencies]
 repos = [
-    "csr.h"
+    ["Emilia-Systems", "csr.h"]
 ]
