@@ -1,0 +1,7 @@
+[config]
+username = "Emilia-Systems"
+
+[dependencies]
+repos = [
+    "csr.h"
+]
