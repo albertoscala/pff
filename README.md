@@ -59,20 +59,18 @@ just walks the list and copies files.
 Put this in the root of the project that needs files pulled in.
 
 ```toml
-[config]
-username = "your-github-username-or-org"
-
 [dependencies]
 repos = [
-    "repo-one-name",
-    "repo-two-name"
+    ["github-username-or-org", "repo-one-name"],
+    ["github-username-or-org", "repo-two-name"]
 ]
 ```
 
-- `config.username`: the GitHub user/org that owns every repo listed below.
-  (Right now all dependency repos must belong to this one account.)
-- `dependencies.repos`: the names of the repos to pull from. Each one must
-  contain a `pulled.toml` at its root, on its `main` branch.
+- `dependencies.repos`: the repos to pull from, each given as a
+  `["owner", "repo"]` pair. Owners can differ between entries, there's no
+  requirement that they all belong to the same account.
+- Each listed repo must contain a `pulled.toml` at its root, on its main
+  branch. That file declares which files get pulled and where they land. 
 
 ### `pulled.toml`: "what to pull, and where to put it"
 
