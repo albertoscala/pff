@@ -2,6 +2,8 @@ use std::{env, fs};
 use serde::{Deserialize, Serialize};
 use std::io::{self, IsTerminal};
 
+use crate::dialog::{status, error};
+
 static GITHUB: &str = "https://www.github.com";
 static RAW_GITHUB: &str = "https://raw.githubusercontent.com";
 static MIDDLE: &str = "main";
@@ -44,7 +46,7 @@ impl Puller {
     pub fn display(&self) {
         let n = self.dependencies.repos.len();
         if n == 0 {
-            status("Resolving", "no dependencies");
+            status("", "no dependencies");
             return;
         }
 
@@ -96,28 +98,9 @@ impl Puller {
                 match fs::write(&destination_dir, content) {
                     // Better dialogs
                     Ok(())  => status("Wrote", &destination_dir),
-                    Err(e)  => status_err("Failed", &format!("{destination_dir}: {e}")),
+                    Err(e)  => error("Failed", &format!("{destination_dir}: {e}")),
                 }
             }
         }
-    }
-}
-
-// Helpers
-
-
-fn status(verb: &str, msg: &str) {
-    if io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none() {
-        eprintln!("\x1b[1;32m{verb:>12}\x1b[0m {msg}");
-    } else {
-        eprintln!("{verb:>12} {msg}");
-    }
-}
-
-fn status_err(verb: &str, msg: &str) {
-    if io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none() {
-        eprintln!("\x1b[1;31m{verb:>12}\x1b[0m {msg}");
-    } else {
-        eprintln!("{verb:>12} {msg}");
     }
 }

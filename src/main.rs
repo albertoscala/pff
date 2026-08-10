@@ -1,8 +1,9 @@
 mod puller;
+mod dialog;
 
 use std::io::Write;
-
-use crate::puller::Puller;
+use crate::{puller::Puller};
+use crate::dialog::{prompt, note, status, error};
 
 fn main() {
     // Retrive puller file
@@ -12,9 +13,10 @@ fn main() {
     puller.display();
 
     // Ask the user to proceed or abort
-    print!("\x1b[1;36m::\x1b[0m Proceed with resolution? [y/N] ");
+    prompt("Proceed with resolution?");
     let _ = std::io::stdout().flush();
 
+    // Get the input
     let mut line = String::new();
     let _ = std::io::stdin().read_line(&mut line).unwrap();
 
@@ -24,7 +26,7 @@ fn main() {
             puller.pull();
         },
         _ => {
-            eprintln!("\x1b[1;33mnote\x1b[0m: aborted at user request; nothing was written");
+            note("aborted; nothing was written");
             return;
         }
     }
