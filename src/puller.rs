@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, path::Path};
 use serde::{Deserialize, Serialize};
 use std::io::{self, IsTerminal};
 
@@ -93,8 +93,13 @@ impl Puller {
                 // File content
                 let content = reqwest::blocking::get(url).unwrap()
                                                         .text().unwrap();
+                
+                // Get name only of the file
+                let filename = Path::new(file).file_name().unwrap()
+                                                    .to_str().unwrap();
+                
                 // Write the file in the right dir
-                let destination_dir = format!("{}{}", dir, file);
+                let destination_dir = format!("{}{}", dir, filename);
                 match fs::write(&destination_dir, content) {
                     // Better dialogs
                     Ok(())  => status("Wrote", &destination_dir),
