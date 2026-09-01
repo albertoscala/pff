@@ -1,4 +1,5 @@
-use std::{env, fs, path::Path};
+use std::{env, fs, ops::AddAssign, path::Path};
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::io::{self, IsTerminal};
 
@@ -20,6 +21,12 @@ pub struct Puller {
     dependencies: Dependencies,
 }
 
+impl AddAssign for Puller {
+    fn add_assign(&mut self, mut other: Self) {
+        self.dependencies.repos.append(&mut other.dependencies.repos);
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Setup {
     files: Vec<(String, String)>
@@ -31,14 +38,28 @@ pub struct Pulled {
 }
 
 impl Puller {
-    pub fn fetch() -> Self{
+    pub fn fetch() -> Self {
         // Find the puller file
         let mut puller_file = env::current_dir().unwrap();
         puller_file.push(PULLER);
 
         // Parse the puller file
         let content = fs::read_to_string(puller_file).unwrap();
-        let puller: Puller = toml::from_str(&content).unwrap();
+        let mut puller: Puller = toml::from_str(&content).unwrap();
+
+        let repos = puller.dependencies.repos.clone();
+
+        for (owner, repo) in repos {
+            // Compose url for pulled_file
+            let url = format!("{}/{}/{}/{}/{}", RAW_GITHUB, owner, repo, MIDDLE, PULLER);
+            
+            // Parse the pulled file
+            let response = reqwest::blocking::get(url).unwrap();
+            match response.status() {
+                StatusCode::NOT_FOUND => continue,
+                _ => puller += toml::from_str(&response.text().unwrap()).unwrap(),
+            }
+        }
         
         puller
     }

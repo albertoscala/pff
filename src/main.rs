@@ -3,7 +3,7 @@ mod dialog;
 
 use std::io::Write;
 use crate::{puller::Puller};
-use crate::dialog::{prompt, note, status, error};
+use crate::dialog::{prompt, note};
 
 fn main() {
     // Retrive puller file

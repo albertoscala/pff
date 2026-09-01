@@ -1,4 +1,5 @@
 [dependencies]
 repos = [
-    ["Emilia-Systems", "csr.h"]
+    ["scala-systems", "csr.h"],
+    ["scala-systems", "qemu_dev.h"],
 ]
