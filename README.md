@@ -2,7 +2,7 @@
 
 `pff` is a tiny, language-agnostic dependency puller written in Rust.
 
-It's the plumbing for this bigger project: many independent
+It's the plumbing for bigger indipendent projects: many independent
 repos that occasionally need to share a handful of files with each other (a header,
 a linker script, a common Verilog package, whatever). `pff` exists to move exactly
 those files from one repo to another, and nothing more.
@@ -94,7 +94,7 @@ files = [
 ## Usage
 
 ```bash
-git clone https://github.com/Emilia-Systems/pff
+git clone https://github.com/jelgavas-labs/pff
 cd pff
 cargo build --release
 ```
