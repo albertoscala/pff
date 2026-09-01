@@ -59,6 +59,8 @@ impl Puller {
                 StatusCode::NOT_FOUND => continue,
                 _ => puller += toml::from_str(&response.text().unwrap()).unwrap(),
             }
+
+            puller.dependencies.repos.dedup();
         }
         
         puller

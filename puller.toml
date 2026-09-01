@@ -2,4 +2,5 @@
 repos = [
     ["scala-systems", "csr.h"],
     ["scala-systems", "qemu_dev.h"],
+    ["scala-systems", "qemu_dev.h"],
 ]
