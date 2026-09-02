@@ -1,6 +1,7 @@
 use std::{env, fs, ops::AddAssign, path::Path};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use std::collections::{HashSet, VecDeque};
 use std::io::{self, IsTerminal};
 
 use crate::dialog::{status, error};
@@ -39,32 +40,47 @@ pub struct Pulled {
 
 impl Puller {
     pub fn fetch() -> Self {
-        // Find the puller file
-        let mut puller_file = env::current_dir().unwrap();
-        puller_file.push(PULLER);
+    let mut puller_file = env::current_dir().unwrap();
+    puller_file.push(PULLER);
 
-        // Parse the puller file
-        let content = fs::read_to_string(puller_file).unwrap();
-        let mut puller: Puller = toml::from_str(&content).unwrap();
+    let content = fs::read_to_string(puller_file).unwrap();
+    let mut puller: Puller = toml::from_str(&content).unwrap();
 
-        let repos = puller.dependencies.repos.clone();
+    // Direct deps are already recorded; mark them seen so we don't re-add them.
+    let mut seen: HashSet<(String, String)> =
+        puller.dependencies.repos.iter().cloned().collect();
+    let mut queue: VecDeque<(String, String)> =
+        puller.dependencies.repos.iter().cloned().collect();
 
-        for (owner, repo) in repos {
-            // Compose url for pulled_file
-            let url = format!("{}/{}/{}/{}/{}", RAW_GITHUB, owner, repo, MIDDLE, PULLER);
-            
-            // Parse the pulled file
-            let response = reqwest::blocking::get(url).unwrap();
-            match response.status() {
-                StatusCode::NOT_FOUND => continue,
-                _ => puller += toml::from_str(&response.text().unwrap()).unwrap(),
-            }
+    let client = reqwest::blocking::Client::new();
 
-            puller.dependencies.repos.dedup();
+    while let Some((owner, repo)) = queue.pop_front() {
+        let url = format!("{}/{}/{}/{}/{}", RAW_GITHUB, owner, repo, MIDDLE, PULLER);
+
+        let response = match client.get(&url).send() {
+            Ok(r) => r,
+            Err(_) => continue,
+        };
+        if response.status() != StatusCode::OK {
+            continue;
         }
-        
-        puller
+
+        let nested: Puller = match response.text().ok().and_then(|b| toml::from_str(&b).ok()) {
+            Some(p) => p,
+            None => continue,
+        };
+
+        for dep in nested.dependencies.repos {
+            // insert returns false if we've already queued this repo
+            if seen.insert(dep.clone()) {
+                puller.dependencies.repos.push(dep.clone());
+                queue.push_back(dep);
+            }
+        }
     }
+
+    puller
+}
 
     pub fn display(&self) {
         let n = self.dependencies.repos.len();
